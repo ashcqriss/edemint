@@ -1,0 +1,80 @@
+#!/bin/sh
+# Edemint app relabeling.
+#
+# The user-facing app names ("Adventurer", "Filer", "Noterer", "Camera",
+# "Sticky Note", etc.) are Edemint identity — the binaries underneath
+# stay the upstream Debian packages until each gets a real custom
+# replacement. This hook rewrites the Name= / Name[XX]= and GenericName=
+# fields in the installed .desktop files so the launcher (wofi --show
+# drun) shows the Edemint label, not the upstream name.
+#
+# Idempotent — runs sed-replace; running twice does nothing different.
+# Tolerates any of the listed .desktop files being absent (the matching
+# package can be best-effort).
+#
+# Icons are NOT touched here. The .desktop files keep their original
+# Icon=org.gnome.X identifier; the design pass ships an icon theme
+# that maps those names to Edemint artwork.
+set -u
+
+# Map: <upstream .desktop file basename>  <Edemint Name= value>
+# One entry per line; whitespace-separated; comments with #.
+MAP='
+org.gnome.Epiphany.desktop          Adventurer
+org.gnome.Nautilus.desktop          Filer
+org.gnome.Settings.desktop          Settings
+org.gnome.Calendar.desktop          Calendar
+org.gnome.Maps.desktop              Maps
+org.gnome.Geary.desktop             Mail
+org.gnome.TextEditor.desktop        Noterer
+org.gnome.Dictionary.desktop        Dictionary
+org.gnome.Logs.desktop              Console
+org.gnome.font-viewer.desktop       Fonts
+org.gnome.FontManager.desktop       FontManager
+org.gnome.Snapshot.desktop          Camera
+org.darktable.darktable.desktop     CameraPro
+gnome-color-manager.desktop         ColorControl
+system-config-printer.desktop       PrintControl
+xpad.desktop                        StickyNote
+io.missioncenter.MissionCenter.desktop  ActivityMonitor
+org.kde.digikam.desktop             PhotoLibrary
+'
+
+APPDIRS='/usr/share/applications /usr/local/share/applications'
+
+renamed=0
+missing=0
+
+# POSIX-safe while-read on the heredoc-style MAP.
+echo "$MAP" | while IFS= read -r line; do
+    # skip blank / comment lines
+    case "$line" in
+        ''|\#*) continue ;;
+    esac
+    # split on whitespace, keep the rest of the line as Name=
+    file=${line%%[[:space:]]*}
+    rest=${line#"$file"}
+    name=$(printf '%s' "$rest" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')
+
+    found=""
+    for d in $APPDIRS; do
+        p="$d/$file"
+        [ -f "$p" ] && found="$p" && break
+    done
+    if [ -z "$found" ]; then
+        echo "  miss  $file"
+        missing=$((missing + 1))
+        continue
+    fi
+
+    # Rewrite the default Name= line and every Name[xx]= localized variant
+    # to the Edemint label. The locale bracket is preserved via \1 so
+    # Name[de]=… stays Name[de]=… rather than collapsing into duplicate
+    # Name= lines. GenericName= is left as-is (e.g. "Web Browser").
+    sed -i -E "s|^Name(\\[[^]]+\\])?=.*|Name\\1=$name|" "$found"
+    echo "  rename $file -> $name"
+    renamed=$((renamed + 1))
+done
+
+echo "0150-app-rename: relabeled apps."
+exit 0

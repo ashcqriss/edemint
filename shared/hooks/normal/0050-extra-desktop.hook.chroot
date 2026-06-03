@@ -27,6 +27,10 @@ distrobox
 fastfetch
 grub-btrfs
 ollama
+mission-center
+digikam
+actiona
+hyprexpo
 "
 
 echo "edemint: installing best-effort desktop extras..."

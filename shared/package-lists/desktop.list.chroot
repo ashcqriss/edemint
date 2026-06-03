@@ -76,6 +76,44 @@ baobab
 deja-dup
 thunar
 
+# --- Edemint user-facing app stack (rebranded via 0150-app-rename hook) -
+# Each Edemint app name on the left is a relabel via the .desktop file's
+# Name= field; the binary stays the upstream Debian one (battle-tested).
+# Custom replacements can swap in one app at a time over the project's
+# lifetime; the visible label stays the same.
+#
+#   Adventurer  → epiphany-browser  (WebKitGTK; same engine family as Safari)
+#   Filer       → nautilus
+#   Settings    → gnome-control-center
+#   Calendar    → gnome-calendar
+#   Maps        → gnome-maps
+#   Mail        → geary
+#   Noterer     → gnome-text-editor
+#   Dictionary  → gnome-dictionary
+#   Console     → gnome-logs
+#   Fonts       → gnome-font-viewer + font-manager
+#   Camera      → snapshot
+#   Camera Pro  → darktable
+#   Color Ctrl  → gnome-color-manager
+#   Print Ctrl  → system-config-printer
+#   Sticky Note → xpad
+epiphany-browser
+nautilus
+gnome-control-center
+gnome-calendar
+gnome-maps
+geary
+gnome-text-editor
+gnome-dictionary
+gnome-logs
+gnome-font-viewer
+font-manager
+snapshot
+darktable
+gnome-color-manager
+system-config-printer
+xpad
+
 # --- Flatpak (Flathub remote registered in 0300-flatpak-flathub.hook) ---
 flatpak
 gnome-software
